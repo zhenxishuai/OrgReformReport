@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创始人IP陪跑计划 - 官方介绍页面</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F7FAFC;
+            color: #1A202C;
+        }
+        .hero-bg {
+            background-color: #1A2940;
+            background-image: linear-gradient(135deg, #1A2940 0%, #2563EB 100%);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            margin: auto;
+            height: 280px;
+            max-height: 320px;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            color: #2563EB;
+            border-bottom-color: #2563EB;
+            background-color: #EFF6FF;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .cta-button {
+            transition: all 0.3s ease;
+        }
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -2px rgba(37, 99, 235, 0.2);
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 1.25rem;
+            top: 1.25rem;
+            bottom: -1.25rem;
+            width: 2px;
+            background-color: #DBEAFE;
+            transform: translateX(-50%);
+        }
+        .timeline-item:last-child::before {
+            display: none;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: 1.25rem;
+            top: 1.25rem;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Hero Section -->
+    <header class="hero-bg text-white">
+        <div class="container mx-auto px-6 py-20 md:py-32 text-center">
+            <h1 class="text-4xl md:text-6xl font-black leading-tight">创始人IP陪跑计划</h1>
+            <p class="mt-4 text-lg md:text-xl text-blue-200 max-w-3xl mx-auto">
+                我们不仅提供策略，更陪你走通从0到1的全过程，将你的专业能力转化为可持续变现的影响力。
+            </p>
+            <a href="#cta-section" class="cta-button inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-lg px-8 py-4 mt-10">
+                立即锁定席位，开启IP增长之旅
+            </a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-16 md:py-24">
+
+        <!-- Target Audience Section -->
+        <section id="target-audience" class="max-w-6xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">这项陪跑计划，是为你量身打造的吗？</h2>
+            <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto">我们寻求的是有决心、有基础、并渴望系统化成长的创始人，而不是寻找捷径的“甩手掌柜”。</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-lg shadow-lg border-l-4 border-green-500">
+                    <h3 class="text-2xl font-bold mb-4 flex items-center">
+                        <span class="text-3xl mr-3">✅</span> 这个产品适合你，如果...
+                    </h3>
+                    <ul class="space-y-4 text-gray-700">
+                        <li class="flex items-start">
+                            <span class="font-bold text-green-500 mr-2 mt-1">→</span>
+                            <div><strong>渴望开启短视频事业，却不知从何入手</strong><br><span class="text-sm text-gray-500">想抓住风口，但缺乏清晰的路线图和第一步的勇气。</span></div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="font-bold text-green-500 mr-2 mt-1">→</span>
+                            <div><strong>已在运营IP，但缺乏章法，变现困难</strong><br><span class="text-sm text-gray-500">内容零散，流量不稳，时常违规，商业价值无法体现。</span></div>
+                        </li>
+                         <li class="flex items-start">
+                            <span class="font-bold text-green-500 mr-2 mt-1">→</span>
+                            <div><strong>希望将个人专业，系统化地打造成IP</strong><br><span class="text-sm text-gray-500">拥有一技之长，但不知道如何将其产品化和内容化。</span></div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-lg border-l-4 border-red-500">
+                    <h3 class="text-2xl font-bold mb-4 flex items-center">
+                        <span class="text-3xl mr-3">❌</span> 这个产品不适合你，如果...
+                    </h3>
+                    <ul class="space-y-4 text-gray-700">
+                        <li class="flex items-start">
+                           <span class="font-bold text-red-500 mr-2 mt-1">→</span>
+                            <div><strong>缺乏业务基本盘的纯小白</strong><br><span class="text-sm text-gray-500">IP是能力的放大器，而非无中生有。你需要有一技之长。</span></div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="font-bold text-red-500 mr-2 mt-1">→</span>
+                            <div><strong>希望完全外包的“甩手掌柜”</strong><br><span class="text-sm text-gray-500">创始人IP的核心是“创始人”，我们提供的是陪跑，无法替你出镜。</span></div>
+                        </li>
+                         <li class="flex items-start">
+                           <span class="font-bold text-red-500 mr-2 mt-1">→</span>
+                            <div><strong>不理解长期价值，追求一夜爆火</strong><br><span class="text-sm text-gray-500">我们构建的是健康的商业生态，而非昙花一现的网红账号。</span></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transformation Section -->
+        <section id="transformation" class="max-w-5xl mx-auto text-center mt-24">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">告别混乱摸索，拥抱系统化增长</h2>
+            <p class="text-gray-600 mb-12">我们将带你从“无效努力”的泥潭，走向“精准发力”的高速公路。</p>
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <div class="chart-container">
+                    <canvas id="transformationChart"></canvas>
+                </div>
+            </div>
+        </section>
+        
+        <!-- What You'll Get Section -->
+        <section id="what-you-get" class="max-w-6xl mx-auto mt-24">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">你将获得三大核心交付</h2>
+            
+            <div class="bg-white rounded-lg shadow-lg">
+                <!-- Tabs -->
+                <div class="border-b border-gray-200">
+                    <nav class="flex -mb-px" aria-label="Tabs">
+                        <button class="tab-button active w-1/3 text-center font-bold text-gray-500 hover:text-blue-600 hover:border-gray-300 py-4 px-1 border-b-4 text-lg" data-tab="strategy">
+                            1. IP战略与商业模型
+                        </button>
+                        <button class="tab-button w-1/3 text-center font-bold text-gray-500 hover:text-blue-600 hover:border-gray-300 py-4 px-1 border-b-4 text-lg" data-tab="content">
+                            2. IP内容生产机制
+                        </button>
+                        <button class="tab-button w-1/3 text-center font-bold text-gray-500 hover:text-blue-600 hover:border-gray-300 py-4 px-1 border-b-4 text-lg" data-tab="support">
+                            3. 持续陪跑与复盘
+                        </button>
+                    </nav>
+                </div>
+                
+                <!-- Tab Content -->
+                <div class="p-8 md:p-12">
+                    <div id="strategy" class="tab-content active">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <h3 class="text-2xl font-bold text-blue-700 mb-4">第一步：顶层设计，找准你的战场</h3>
+                                <p class="text-gray-600 mb-6">方向不对，努力白费。万SIR将亲自与你进行一对一深度交流，为你厘清战略，确保你在正确的赛道上，以最独特的姿态起跑。</p>
+                                <ul class="space-y-3 text-lg">
+                                    <li class="flex items-center">🎯<strong class="mx-2">人设定位:</strong> 找到你最真实、最独特、最能吸引目标客户的IP人设。</li>
+                                    <li class="flex items-center">🔍<strong class="mx-2">赛道调研:</strong> 分析市场格局，找到蓝海或差异化竞争的切入点。</li>
+                                    <li class="flex items-center">📊<strong class="mx-2">对标账号:</strong> 精准拆解头部玩家，学习其长，规避其短。</li>
+                                    <li class="flex items-center">💰<strong class="mx-2">商业模式:</strong> 设计从流量到利润的完整闭环，让IP可持续变现。</li>
+                                </ul>
+                            </div>
+                            <div class="chart-container h-72">
+                                <canvas id="strategyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="content" class="tab-content">
+                        <h3 class="text-2xl font-bold text-blue-700 mb-4">第二步：搭建体系，让内容生产可复制</h3>
+                        <p class="text-gray-600 mb-6">我们将为你搭建一套标准化的内容工业流程(SOP)，让你彻底告别灵感枯竭和效率低下的困境，实现高质量内容的稳定输出。</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-blue-50 p-6 rounded-lg">
+                                <h4 class="font-bold text-lg mb-2">内容策划系统</h4>
+                                <ul class="list-disc list-inside text-gray-700">
+                                    <li>可复制的爆款选题模式</li>
+                                    <li>“种草-干货-品牌”内容搭配黄金比例</li>
+                                    <li>高完播率的短视频文本结构</li>
+                                    <li>从公域到私域的转化模型</li>
+                                </ul>
+                            </div>
+                            <div class="bg-blue-50 p-6 rounded-lg">
+                                <h4 class="font-bold text-lg mb-2">两大核心内容库</h4>
+                                <ul class="list-disc list-inside text-gray-700">
+                                    <li><strong>选题库搭建:</strong> 让你源源不断地产出用户关心的好选题。</li>
+                                    <li><strong>内容结构库搭建:</strong> 提供多种验证有效的文案框架，即取即用。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="support" class="tab-content">
+                        <h3 class="text-2xl font-bold text-blue-700 mb-4">第三步：长期主义，陪你跑通最后一公里</h3>
+                        <p class="text-gray-600 mb-6">执行比计划更重要。我们提供的是“教练式”陪跑，在你前进的每一步都给予及时的反馈和校准，确保你不走偏、不掉队，最终拿到结果。</p>
+                         <div class="relative pl-10">
+                            <div class="timeline-item relative pb-10">
+                                <div class="timeline-dot bg-blue-500 w-5 h-5 rounded-full ring-8 ring-white"></div>
+                                <h4 class="text-xl font-bold">月度内容规划会</h4>
+                                <p class="text-gray-600">每月初共同制定内容发布计划，明确目标与节奏。</p>
+                            </div>
+                            <div class="timeline-item relative pb-10">
+                                <div class="timeline-dot bg-blue-500 w-5 h-5 rounded-full ring-8 ring-white"></div>
+                                <h4 class="text-xl font-bold">选题与热点分享</h4>
+                                <p class="text-gray-600">持续为你提供行业热点和经过验证的选题方向。</p>
+                            </div>
+                            <div class="timeline-item relative pb-10">
+                                <div class="timeline-dot bg-blue-500 w-5 h-5 rounded-full ring-8 ring-white"></div>
+                                <h4 class="text-xl font-bold">内容与剪辑反馈</h4>
+                                <p class="text-gray-600">对你的文案、拍摄和剪辑进行1v1精细化反馈，快速提升作品质量。</p>
+                            </div>
+                            <div class="timeline-item relative">
+                                <div class="timeline-dot bg-blue-500 w-5 h-5 rounded-full ring-8 ring-white"></div>
+                                <h4 class="text-xl font-bold">月度数据复盘</h4>
+                                <p class="text-gray-600">深度分析后台数据，总结经验，迭代策略，让每一次发布都比上一次更有效。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mentor Section -->
+        <section id="mentor" class="max-w-4xl mx-auto mt-24 text-center">
+             <h2 class="text-3xl md:text-4xl font-bold mb-10">导师：万SIR (Wan Sir)</h2>
+             <div class="bg-white p-8 rounded-lg shadow-lg flex flex-col md:flex-row items-center gap-8">
+                <img src="https://placehold.co/200x200/EBF4FF/709DFF?text=万SIR" alt="万SIR" class="w-48 h-48 rounded-full object-cover flex-shrink-0">
+                <div class="text-left">
+                    <p class="text-gray-700 text-lg leading-relaxed">
+                        “大家好，我是万SIR。在过去的几年里，我深度参与并主导了多个创始人IP从0到1、从1到100的孵化过程。我发现，成功的创始人IP无一不是‘战略清晰度’和‘内容系统性’的完美结合。我创办这个陪跑计划的初衷，就是希望将这套被验证过无数次的方法论，毫无保留地赋能给更多有决心、有潜力的创始人。我期待与你一起，将你的宝贵经验，打造成最具影响力的个人品牌。”
+                    </p>
+                    <p class="mt-4 font-bold text-blue-600">— T.I.F.模型提出者，创始人IP战略顾问</p>
+                </div>
+             </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section id="cta-section" class="max-w-4xl mx-auto mt-24 text-center bg-white p-10 rounded-lg shadow-2xl">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">准备好，将你的影响力变为生产力了吗？</h2>
+            <p class="text-gray-600 mb-8 text-lg">席位有限，我们只与少数志同道合的创始人深度同行。立即申请，锁定与万SIR的一对一沟通机会。</p>
+            <a href="#" class="cta-button inline-block bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg text-xl px-12 py-5">
+                立即申请一对一诊断
+            </a>
+            <p class="text-sm text-gray-500 mt-4">点击上方按钮，将有专属顾问与您联系，安排评估沟通</p>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-24">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <p>&copy; 2025 创始人IP陪跑计划. All Rights Reserved.</p>
+            <p class="text-sm text-gray-400 mt-2">赋能每一个值得被看见的创始人</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Tab functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            const tabId = button.dataset.tab;
+            tabContents.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        });
+    });
+
+    const commonChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    font: { size: 14, family: "'Noto Sans SC', sans-serif" }
+                }
+            },
+            tooltip: {
+                titleFont: { size: 14, family: "'Noto Sans SC', sans-serif" },
+                bodyFont: { size: 12, family: "'Noto Sans SC', sans-serif" }
+            }
+        },
+    };
+    
+    // Transformation Chart
+    const transCtx = document.getElementById('transformationChart').getContext('2d');
+    new Chart(transCtx, {
+        type: 'bar',
+        data: {
+            labels: ['投入精力', '产出结果'],
+            datasets: [
+                {
+                    label: '陪跑前：混乱摸索',
+                    data: [9, 3],
+                    backgroundColor: '#A0AEC0',
+                    borderColor: '#718096',
+                    borderWidth: 1
+                },
+                {
+                    label: '陪跑后：系统化增长',
+                    data: [7, 9],
+                    backgroundColor: '#3B82F6',
+                    borderColor: '#2563EB',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            ...commonChartOptions,
+            scales: {
+                y: { beginAtZero: true, max: 10 }
+            }
+        }
+    });
+
+    // Strategy Chart
+    const strategyCtx = document.getElementById('strategyChart').getContext('2d');
+    new Chart(strategyCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['人设定位', '赛道调研', '对标账号', '商业模式'],
+            datasets: [{
+                label: 'IP战略四大支柱',
+                data: [25, 25, 25, 25],
+                backgroundColor: [
+                    '#2563EB',
+                    '#3B82F6',
+                    '#60A5FA',
+                    '#93C5FD'
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: commonChartOptions
+    });
+});
+</script>
+
+</body>
+</html>
