@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>组织变革交互式蓝图</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <!-- Chosen Palette: Calm Neutral & Corporate Blue -->
+    <!-- Application Structure Plan: 采用标签式仪表板(Dashboard)布局。结构分为四个核心板块：1.【变革总览】（默认页），使用交互式HTML/CSS图表，直观展示“变革前”（8部门）到“变革后”（5实体）的合并映射关系，并辅以Chart.js图表量化管理单元的精简。2.【新部门详解】，通过可折叠卡片详细介绍新成立的“大生产经营部”和“大综合管理中心”的核心职责与岗位。3.【变革必要性】，阐述外部行业趋势（如北投集团案例）和内部管理需求。4.【原部门职能】，提供一个下拉菜单查询器，用于回顾8个原部门的核心职能（基于CSV文件）。
+    选择理由：此结构将复杂的组织变革分解为“宏观概览”、“深度解析”、“背景原因”和“历史参考”四个逻辑层面。用户首先看到最具冲击力的“总览”图，通过点击交互，理解“谁并入了谁”；然后可以按需深入探索新部门的“具体职能”和变革的“为什么”。这比单一的线性报告更易于理解、消化和探索，完全符合交互式应用的目标。 -->
+    <!-- Visualization & Content Choices: 
+    1.  [变革总览] - 部门映射图
+        * 报告信息：8个原部门（工程、法经、机材、党群、人力等）合并重组为5个新实体（大生产、大综合、市场、安监、财务）。
+        * 目标：直观展示“多对一”的合并关系。
+        * 呈现方式：使用HTML/CSS/Tailwind构建的双栏（变革前、变革后）Flexbox/Grid图表。每个部门/实体是一个 `div` 块。
+        * 交互：点击“变革前”的任一部门，JS将高亮显示该部门（例如，灰色边框）及其在“变革后”的归宿实体（例如，蓝色边框）。反之，点击“变革后”的任一实体，JS将高亮显示该实体（蓝色边框）及其所有来源部门（灰色边框）。
+        * 理由：在禁止使用SVG/Mermaid的前提下，这是最清晰、最轻量且交互性最强的可视化方案，能即时回答“XX部去哪了？”和“XX部是怎么来的？”的核心问题。
+    2.  [变革总览] - 管理效率图
+        * 报告信息：管理单元从8个精简为5个。
+        * 目标：量化展示“管理集约化”的成果。
+        * 呈现方式：使用Chart.js构建的条形图(Bar Chart)，在Canvas上渲染。
+        * 交互：鼠标悬停显示工具提示（Tooltip）。
+        * 理由：满足Chart.js的强制要求，并以数据形式强化了变革的核心收益（精简、高效）。
+    3.  [新部门详解] - 职能与岗位
+        * 报告信息：用户提供的关于“大生产经营部”和“大综合管理中心”的详细职责与岗位设置。
+        * 目标：清晰、分层地介绍新部门的内部结构。
+        * 呈现方式：HTML卡片 + 可折叠内容（Accordion/Toggle）。
+        * 交互：点击新部门卡片标题，可展开/收起其详细的职责和岗位列表。
+        * 理由：标准的UI模式，允许用户在不离开页面的情况下按需“钻取”详细信息，避免信息过载。
+    4.  [原部门职能] - 职能查询器
+        * 报告信息：8个CSV文件中的原部门职能列表。
+        * 目标：提供“变革前”的背景数据以供参考。
+        * 呈现方式：HTML `<select>` 下拉菜单 + 一个动态内容 `div`。
+        * 交互：用户在下拉菜单中选择一个原部门，JS将从内置的数据对象中检索该部门的职能列表，并将其填充到 `div` 中。
+        * 理由：将大量的参考信息隐藏在一个查询器后面，保持主界面的简洁性，仅在用户需要时提供数据。
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+        .nav-button {
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-button.active {
+            @apply bg-blue-700 text-white;
+        }
+        .tab-panel {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .diagram-block {
+            transition: all 0.3s ease;
+            @apply border-2 border-transparent;
+        }
+        .diagram-block.selected-before {
+            @apply ring-2 ring-offset-2 ring-gray-500 shadow-xl scale-105;
+        }
+        .diagram-block.selected-after {
+            @apply ring-2 ring-offset-2 ring-blue-600 shadow-xl scale-105;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="max-w-7xl mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-800">组织变革交互式蓝图</h1>
+            <p class="text-lg text-gray-600 mt-2">探索从“职能分散”到“管理集约”的战略转型路径</p>
+        </header>
+
+        <nav class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
+            <button class="nav-button active py-2 px-4 rounded-lg font-medium bg-white text-blue-700 shadow-sm hover:bg-blue-50" data-tab="overview">
+                变革总览
+            </button>
+            <button class="nav-button py-2 px-4 rounded-lg font-medium bg-white text-blue-700 shadow-sm hover:bg-blue-50" data-tab="details">
+                新部门详解
+            </button>
+            <button class="nav-button py-2 px-4 rounded-lg font-medium bg-white text-blue-700 shadow-sm hover:bg-blue-50" data-tab="necessity">
+                变革必要性
+            </button>
+            <button class="nav-button py-2 px-4 rounded-lg font-medium bg-white text-blue-700 shadow-sm hover:bg-blue-50" data-tab="original">
+                原部门职能参考
+            </button>
+        </nav>
+
+        <main>
+            <!-- 1. 变革总览 (默认显示) -->
+            <div id="overview-panel" class="tab-panel">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold text-blue-700 mb-4">组织架构映射</h2>
+                    <p class="text-gray-600 mb-6">下图展示了从现有的8个部门到重构后的5个核心实体的归并关系。请点击任意色块（部门或实体）查看其关联关系，直观理解“多对一”的整合逻辑。</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-start">
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg border">
+                            <h3 class="text-xl font-semibold text-center mb-4 text-gray-700">变革前：8 部门 (职能型)</h3>
+                            <div class="space-y-3">
+                                <div id="before-eng-tech" class="diagram-block p-4 bg-white shadow-sm rounded-lg cursor-pointer hover:shadow-md border-gray-200">
+                                    <h4 class="font-bold">工程技术部</h4>
+                                    <p class="text-sm text-gray-500">工程、技术、进度、科研</p>
+                                </div>
+                                <div id="before-legal-econ" class="diagram-block p-4 bg-white shadow-sm rounded-lg cursor-pointer hover:shadow-md border-gray-200">
+                                    <h4 class="font-bold">法经部</h4>
+                                    <p class="text-sm text-gray-500">经营、合同、法务、成本、采购</p>
+                                </div>
+                                <div id="before-equip-mat" class="diagram-block p-4 bg-white shadow-sm rounded-lg cursor-pointer hover:shadow-md border-gray-200">
+                                    <h4 class="font-bold">机材部</h4>
+                                    <p class="text-sm text-gray-500">设备、材料、核算</p>
+                                </div>
+                                <div id="before-party-admin" class="diagram-block p-4 bg-white shadow-sm rounded-lg cursor-pointer hover:shadow-md border-gray-200">
+                                    <h4 class="font-bold">党群综合部</h4>
+                                    <p class="text-sm text-gray-500">党务、行政、后勤、审计</p>
+                                </div>
+                                <div id="before-hr" class="diagram-block p-4 bg-white shadow-sm rounded-lg cursor-pointer hover:shadow-md border-gray-200">
+                                    <h4 class="font-bold">人力资源部</h4>
+                                    <p class="text-sm text-gray-500">人事、薪酬、绩效、培训</p>
+                                </div>
+                                <div id="before-market" class="diagram-block p-4 bg-white shadow-sm rounded-lg cursor-pointer hover:shadow-md border-gray-200">
+                                    <h4 class="font-bold">市场开发部</h4>
+                                    <p class="text-sm text-gray-500">战略、市场、客户</p>
+                                </div>
+                                <div id="before-safety" class="diagram-block p-4 bg-white shadow-sm rounded-lg cursor-pointer hover:shadow-md border-gray-200">
+                                    <h4 class="font-bold">安监部</h4>
+                                    <p class="text-sm text-gray-500">安全、质量、体系</p>
+                                </div>
+                                <div id="before-finance" class="diagram-block p-4 bg-white shadow-sm rounded-lg cursor-pointer hover:shadow-md border-gray-200">
+                                    <h4 class="font-bold">财务部</h4>
+                                    <p class="text-sm text-gray-500">资金、核算、税务</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <h3 class="text-xl font-semibold text-center mb-4 text-blue-800">变革后：5 实体 (平台型)</h3>
+                            <div class="space-y-4">
+                                <div id="after-prod-op" class="diagram-block p-6 bg-blue-100 shadow-sm rounded-lg cursor-pointer hover:shadow-md border-blue-300">
+                                    <h4 class="font-bold text-blue-900">大生产经营部</h4>
+                                    <p class="text-sm text-blue-700">核心价值链 (项目全生命周期)</p>
+                                </div>
+                                <div id="after-admin-center" class="diagram-block p-6 bg-blue-100 shadow-sm rounded-lg cursor-pointer hover:shadow-md border-blue-300">
+                                    <h4 class="font-bold text-blue-900">大综合管理中心</h4>
+                                    <p class="text-sm text-blue-700">共享服务平台 (后台支持)</p>
+                                </div>
+                                <div id="after-market" class="diagram-block p-6 bg-blue-100 shadow-sm rounded-lg cursor-pointer hover:shadow-md border-blue-300">
+                                    <h4 class="font-bold text-blue-900">市场开发部</h4>
+                                    <p class="text-sm text-blue-700">独立平台 (战略开拓)</p>
+                                </div>
+                                <div id="after-safety" class="diagram-block p-6 bg-blue-100 shadow-sm rounded-lg cursor-pointer hover:shadow-md border-blue-300">
+                                    <h4 class="font-bold text-blue-900">安监部</h4>
+                                    <p class="text-sm text-blue-700">独立平台 (安全生命线)</p>
+                                </div>
+                                <div id="after-finance" class="diagram-block p-6 bg-blue-100 shadow-sm rounded-lg cursor-pointer hover:shadow-md border-blue-300">
+                                    <h4 class="font-bold text-blue-900">财务部</h4>
+                                    <p class="text-sm text-blue-700">独立平台 (经济合规)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-8">
+
+                    <div>
+                        <h2 class="text-2xl font-semibold text-blue-700 mb-4">管理效率概览</h2>
+                        <p class="text-gray-600 mb-6">本次变革的核心目标之一是实现“管理集约化”。通过整合，公司总部的核心管理单元（部门/实体）数量得到精简，旨在提升决策效率，减少多头管理。</p>
+                        <div class="chart-container relative w-full max-w-lg mx-auto h-64 md:h-80">
+                            <canvas id="efficiencyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 新部门详解 (默认隐藏) -->
+            <div id="details-panel" class="tab-panel hidden">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold text-blue-700 mb-4">新部门职能与岗位规划</h2>
+                    <p class="text-gray-600 mb-6">本次变革的核心是组建两大“超级部门”。点击下方卡片，查看新部门的详细职责与岗位设置规划。</p>
+                    
+                    <div class="space-y-4">
+                        <div class="border rounded-lg overflow-hidden">
+                            <h3 class="p-4 text-xl font-semibold text-blue-800 bg-blue-50 cursor-pointer hover:bg-blue-100 flex justify-between items-center" data-toggle="details-prod-op">
+                                1. 大生产经营部 (核心价值链)
+                                <span class="text-sm text-blue-600 arrow">▼ 展开</span>
+                            </h3>
+                            <div id="details-prod-op" class="p-6 border-t border-blue-200 hidden">
+                                <p class="mb-4 text-gray-700"><strong>定位：</strong> 公司项目全生命周期的管理中枢与价值创造中心。打通“经营-技术-机材-成本”核心链条。</p>
+                                
+                                <h4 class="text-lg font-semibold text-gray-800 mt-4 mb-2">核心职责：</h4>
+                                <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                    <li><strong>经营投标与合同：</strong> 负责项目跟踪、标前成本测算、报价、合同评审与法务支持。</li>
+                                    <li><strong>工程技术与进度：</strong> 负责施工组织策划、技术方案、进度管理、工程量统计。</li>
+                                    <li><strong>设备材料与采购：</strong> 负责设备、材料的统一采购、租赁、调度、维护与核算。</li>
+                                    <li><strong>成本控制与核算：</strong> 制定目标责任成本，进行全过程动态成本监控、分析与预警。</li>
+                                    <li><strong>(内设)养护技术研发中心：</strong> 转型原“总师室”，负责科研、新技术引进、新工艺攻坚。</li>
+                                </ul>
+
+                                <h4 class="text-lg font-semibold text-gray-800 mt-6 mb-2">岗位设置（规划）：</h4>
+                                <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                    <li><strong>部长：</strong> 由公司副总或总工程师挂帅兼任。</li>
+                                    <li><strong>副部长</strong> (1-2名)</li>
+                                    <li><strong>经营经理</strong> (原法经部负责人转岗，享正职待遇)：带领经营团队（造价、合同、法务）。</li>
+                                    <li><strong>工程经理</strong> (原工程技术部负责人转岗，享正职待遇)：带领工程团队（技术、进度）。</li>
+                                    <li><strong>机材经理</strong> (原机材部负责人转岗，享正职待遇)：带领机材团队（设备、采购、核算）。</li>
+                                    <li><strong>技术研发中心主任</strong>：带领技术研发工程师。</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="border rounded-lg overflow-hidden">
+                            <h3 class="p-4 text-xl font-semibold text-blue-800 bg-blue-50 cursor-pointer hover:bg-blue-100 flex justify-between items-center" data-toggle="details-admin-center">
+                                2. 大综合管理中心 (共享服务平台)
+                                <span class="text-sm text-blue-600 arrow">▼ 展开</span>
+                            </h3>
+                            <div id="details-admin-center" class="p-6 border-t border-blue-200 hidden">
+                                <p class="mb-4 text-gray-700"><strong>定位：</strong> 公司的高效服务平台与管理支持后台。旨在提升后台服务效率，减少多头管理。</p>
+
+                                <h4 class="text-lg font-semibold text-gray-800 mt-4 mb-2">核心职责：</h4>
+                                <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                    <li><strong>党群与纪检：</strong> 负责党建、宣传、工会、企业文化及纪检监察。</li>
+                                    <li><strong>综合行政：</strong> 负责行政、后勤、会务、档案、公文流转、固定资产账务。</li>
+                                    <li><strong>人力资源：</strong> 负责组织规划、招聘、培训、薪酬，并统一负责“组织绩效”与“员工绩效”。</li>
+                                    <li><strong>审计与信息化：</strong> 负责内部审计、信息化规划与系统运维。</li>
+                                </ul>
+
+                                <h4 class="text-lg font-semibold text-gray-800 mt-6 mb-2">岗位设置（规划）：</h4>
+                                <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                    <li><strong>中心主任</strong></li>
+                                    <li><strong>副主任</strong> (1-2名)</li>
+                                    <li><strong>党群主管</strong> (负责党务、纪检、工会)</li>
+                                    <li><strong>行政主管</strong> (负责行政、后勤、档案)</li>
+                                    <li><strong>人力资源主管</strong> (负责人事、薪酬、绩效)</li>
+                                    <li><strong>审计/信息化主管</strong> (负责内审、IT)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 变革必要性 (默认隐藏) -->
+            <div id="necessity-panel" class="tab-panel hidden">
+                <div class="bg-white p-6 md:p-8 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold text-blue-700 mb-6">变革的必要性：应对外部趋势，重塑内部能力</h2>
+                    <div class="space-y-6 text-gray-700 prose max-w-none">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800">行业趋势：“大部制”与管理集约化</h3>
+                            <p>以<strong>北投集团、广西交投及山东高速</strong>等大型交通国企为代表，其养护板块近年均在推动“大部制”改革。核心是打破小部门林立的科层制，组建“大中心”或“大部门”。</p>
+                            <p><strong>意义：</strong> 此举旨在<strong>减少管理层级、压缩行政编制、提升决策效率</strong>。通过管理集约化，实现后台服务（人事、行政）的共享化和核心资源（设备、采购）的集中化，大幅降低内部管理成本。</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800">业务模式：“投建管养一体化”的必然要求</h3>
+                            <p>公路养护市场正从“单一施工”向“投、建、管、养一体化”的综合服务商模式转型。这种模式要求企业必须具备强大的全链条管控能力。</p>
+                            <p><strong>意义：</strong> 传统上“市场、经营、工程、机材”各自为战的模式已无法适应。我们提出的“大生产经营部”思路，正是<strong>打通了“经营报价-技术策划-机材支撑-成本核算”这一核心价值链</strong>，实现前端投标与后端履约的无缝衔接，这是提升项目盈利能力的必然选择。</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800">核心能力：从“要素驱动”转向“技术驱动”</h3>
+                            <p>随着新技术、新材料的应用，养护的科技含量越来越高。企业的核心竞争力正从“拥有多少设备和人”转向“掌握多少核心技术和数据”。</p>
+                            <p><strong>意义：</strong> 将“总师室”并入“大生产经营部”并转型为“养护技术研发中心”，是点睛之笔。它<strong>推动了技术研发从“后台”走向“前线”</strong>，不再是独立的行政部门，而是贴近业务、解决一线难题的“技术攻坚小组”，这对于形成公司核心技术优势至关重要。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 原部门职能参考 (默认隐藏) -->
+            <div id="original-panel" class="tab-panel hidden">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold text-blue-700 mb-4">原部门核心职能参考</h2>
+                    <p class="text-gray-600 mb-6">如需回顾变革前各部门的核心职能，请在下方选择相应部门查看（数据基于职能梳理表）。</p>
+                    
+                    <div class="max-w-md">
+                        <label for="dept-selector" class="block text-sm font-medium text-gray-700">选择部门：</label>
+                        <select id="dept-selector" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm">
+                            <option value="">请选择...</option>
+                            <option value="eng-tech">工程技术部</option>
+                            <option value="legal-econ">法经部</option>
+                            <option value="equip-mat">机材部</option>
+                            <option value="party-admin">党群综合部</option>
+                            <option value="hr">人力资源部</option>
+                            <option value="market">市场开发部</option>
+                            <option value="safety">安监部</option>
+                            <option value="finance">财务部</option>
+                        </select>
+                    </div>
+
+                    <div id="dept-function-display" class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[150px]">
+                        <p class="text-gray-500">请先在上方选择一个部门以查看其核心职能。</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const reformMap = {
+                before: {
+                    'before-eng-tech': 'after-prod-op',
+                    'before-legal-econ': 'after-prod-op',
+                    'before-equip-mat': 'after-prod-op',
+                    'before-party-admin': 'after-admin-center',
+                    'before-hr': 'after-admin-center',
+                    'before-market': 'after-market',
+                    'before-safety': 'after-safety',
+                    'before-finance': 'after-finance',
+                },
+                after: {
+                    'after-prod-op': ['before-eng-tech', 'before-legal-econ', 'before-equip-mat'],
+                    'after-admin-center': ['before-party-admin', 'before-hr'],
+                    'after-market': ['before-market'],
+                    'after-safety': ['before-safety'],
+                    'after-finance': ['before-finance'],
+                }
+            };
+
+            const originalFunctions = {
+                'eng-tech': [
+                    "项目策划及技术管理", "施工进度管理", "工程量管理", "技术标准、规范管理", "科研管理"
+                ],
+                'legal-econ': [
+                    "计划和统计管理", "合同管理", "法务管理", "成本管理", "组织绩效考核", "竞价和造价管理"
+                ],
+                'equip-mat': [
+                    "设备管理（购置、调配、维修、核算）", "材料管理（采购竞价）", "周转材料管理"
+                ],
+                'party-admin': [
+                    "党务工作", "行政事务", "后勤管理", "档案管理", "纪检监察", "审计工作", "工会工作", "信访维稳", "信息化规划"
+                ],
+                'hr': [
+                    "组织规划", "人才发展", "招聘管理", "薪酬福利", "绩效管理", "员工关系管理"
+                ],
+                'market': [
+                    "战略管理", "市场开发（新客户、新区域）", "项目投标管理", "信息调研"
+                ],
+                'safety': [
+                    "安全、质量制度管理", "安全管理（责任书、考核）", "质量管理（检查、数据分析）", "安全设施管理", "“四标一体”管理"
+                ],
+                'finance': [
+                    "财务制度建设", "资金管理", "税务管理", "融资管理", "会计核算与报表", "科研经费管理", "预算管理", "财务分析"
+                ]
+            };
+
+            function initTabs() {
+                const tabButtons = document.querySelectorAll('.nav-button');
+                const tabPanels = document.querySelectorAll('.tab-panel');
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const tabId = button.dataset.tab;
+
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+
+                        tabPanels.forEach(panel => {
+                            if (panel.id === `${tabId}-panel`) {
+                                panel.classList.remove('hidden');
+                            } else {
+                                panel.classList.add('hidden');
+                            }
+                        });
+                    });
+                });
+            }
+
+            function initDiagram() {
+                const blocks = document.querySelectorAll('.diagram-block');
+
+                const clearHighlights = () => {
+                    blocks.forEach(b => {
+                        b.classList.remove('selected-before', 'selected-after');
+                    });
+                };
+
+                blocks.forEach(block => {
+                    block.addEventListener('click', () => {
+                        clearHighlights();
+                        const id = block.id;
+
+                        if (id.startsWith('before-')) {
+                            const targetId = reformMap.before[id];
+                            block.classList.add('selected-before');
+                            if (targetId) {
+                                document.getElementById(targetId)?.classList.add('selected-after');
+                            }
+                        } else if (id.startsWith('after-')) {
+                            const sourceIds = reformMap.after[id];
+                            block.classList.add('selected-after');
+                            if (sourceIds) {
+                                sourceIds.forEach(sourceId => {
+                                    document.getElementById(sourceId)?.classList.add('selected-before');
+                                });
+                            }
+                        }
+                    });
+                });
+            }
+            
+            function initDetailsToggle() {
+                const toggles = document.querySelectorAll('[data-toggle]');
+                toggles.forEach(toggle => {
+                    toggle.addEventListener('click', () => {
+                        const contentId = toggle.dataset.toggle;
+                        const content = document.getElementById(contentId);
+                        const arrow = toggle.querySelector('.arrow');
+                        if (content) {
+                            content.classList.toggle('hidden');
+                            if (content.classList.contains('hidden')) {
+                                arrow.textContent = '▼ 展开';
+                            } else {
+                                arrow.textContent = '▲ 收起';
+                            }
+                        }
+                    });
+                });
+            }
+
+            function initOriginalFunctions() {
+                const selector = document.getElementById('dept-selector');
+                const display = document.getElementById('dept-function-display');
+
+                selector.addEventListener('change', () => {
+                    const selectedDept = selector.value;
+                    if (selectedDept && originalFunctions[selectedDept]) {
+                        const functions = originalFunctions[selectedDept];
+                        display.innerHTML = `<h4 class="font-semibold text-gray-800 mb-2">核心职能列表：</h4>
+                            <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                ${functions.map(f => `<li>${f}</li>`).join('')}
+                            </ul>`;
+                    } else {
+                        display.innerHTML = '<p class="text-gray-500">请先在上方选择一个部门以查看其核心职能。</p>';
+                    }
+                });
+            }
+
+            function initEfficiencyChart() {
+                const ctx = document.getElementById('efficiencyChart')?.getContext('2d');
+                if (!ctx) return;
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['变革前 (部门)', '变革后 (实体)'],
+                        datasets: [{
+                            label: '管理单元数量',
+                            data: [8, 5],
+                            backgroundColor: [
+                                'rgba(107, 114, 128, 0.6)', 
+                                'rgba(59, 130, 246, 0.6)' 
+                            ],
+                            borderColor: [
+                                'rgba(107, 114, 128, 1)',
+                                'rgba(59, 130, 246, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y} 个`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            initTabs();
+            initDiagram();
+            initDetailsToggle();
+            initOriginalFunctions();
+            initEfficiencyChart();
+        });
+    </script>
+</body>
+</html>
