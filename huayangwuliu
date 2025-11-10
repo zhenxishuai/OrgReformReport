@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 
+    Chosen Palette: "Grounded & Professional" (基于您对“简约、沉稳”的偏好，选择一个深蓝、灰色和金色点缀的色板，体现物流的可靠与专业)
+    Application Structure Plan: 
+    设计思路：本SPA的信息架构没有照搬战略报告的结构，而是设计了一个“叙事漏斗”，旨在引导潜在客户或合作伙伴逐步建立信任。
+    1.  [Hero] 价值主张：开篇点明“兜底式交付”的核心承诺，建立第一印象。
+    2.  [硬实力] 规模展示：用可交互的数据看板展示300+车辆、1万平仓储等硬实力，建立基础信任。
+    3.  [软实力] 核心理念（交互核心）：使用Tab切换，分别讲述“春节亏损不涨价”（对客户）、“培养创业者”（对伙伴）、“逆势扩张”（对未来）三个核心故事，这是建立深度信任的关键。
+    4.  [源动力] 创业故事：讲述“爬楼搬货”的起家史，为所有承诺提供人格背书。
+    5.  [行动召唤] 链接入口：提供联系方式。
+    这个结构从“我有什么”到“我信什么”再到“我从哪来”，层层递进，旨在吸引“同频”的人。
+    Visualization & Content Choices:
+    1.  硬实力板块 (数据看板): 
+        -   内容: 300+车辆, 150+新能源, 1万㎡仓储, Top 3冷链。
+        -   目标: 告知 (Inform)。
+        -   呈现: HTML/Tailwind "大数字" 卡片布局。
+        -   交互: 鼠标悬停特效。
+        -   理由: 直观、快速地建立规模认知。 (无SVG/Mermaid)
+    2.  车队构成 (硬实力板块):
+        -   内容: 新能源车 vs 传统车辆比例。
+        -   目标: 比较 (Compare)。
+        -   呈现: 甜甜圈图 (Chart.js / Canvas)。
+        -   理由: 清晰展示对新技术的投入和成本控制的决心。 (无SVG/Mermaid)
+    3.  春节价格对比 (核心理念板块):
+        -   内容: 市场运费 (虚构) vs 我们的运费。
+        -   目标: 改变/比较 (Change/Compare)。
+        -   呈现: 折线图 (Chart.js / Canvas)。
+        -   理由: 戏剧化地展示“春节亏损不涨价”的承诺，视觉冲击力强。 (无SVG/Mermaid)
+    4.  “创业者”兜底模式 (核心理念板块):
+        -   内容: “亏了算我的”合作模式。
+        -   目标: 组织/流程 (Organize)。
+        -   呈现: HTML/Tailwind构建的流程图 (使用Flexbox和border)。
+        -   理由: 清晰解释复杂的商业模式，建立伙伴信任。 (严格遵守 NO SVG / NO Mermaid)
+    CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+    <title>于总 - 兜底式物流交付伙伴</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8f9fa;
+        }
+        /* 选用的色板: Grounded & Professional */
+        :root {
+            --color-primary: #172a4f; /* 深海军蓝 (主色) */
+            --color-secondary: #ffc107; /* 琥珀黄 (点缀) */
+            --color-text: #343a40; /* 深灰 (正文) */
+            --color-text-light: #6c757d; /* 浅灰 (次要文字) */
+            --color-bg: #ffffff; /* 白色 (卡片背景) */
+            --color-bg-alt: #f1f3f5; /* 极浅灰 (背景) */
+        }
+        .text-primary { color: var(--color-primary); }
+        .bg-primary { background-color: var(--color-primary); }
+        .text-secondary { color: var(--color-secondary); }
+        .border-secondary { border-color: var(--color-secondary); }
+        
+        .tab-btn {
+            transition: all 0.3s ease;
+            border-bottom-width: 4px;
+            border-color: transparent;
+        }
+        .tab-btn.active {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            font-weight: 700;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; 
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+                max-height: 400px;
+            }
+        }
+        /* 纯CSS实现的流程图箭头 */
+        .flow-arrow {
+            position: relative;
+            padding: 0.5rem;
+            text-align: center;
+        }
+        .flow-arrow::after {
+            content: '▼';
+            font-size: 1.5rem;
+            color: var(--color-primary);
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-8px);
+            }
+            60% {
+                transform: translateY(-4px);
+            }
+        }
+    </style>
+</head>
+<body class="text-text leading-relaxed">
+
+    <!-- 导航栏 -->
+    <nav class="bg-primary text-white p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center max-w-7xl">
+            <h1 class="text-2xl font-bold">扬华物流</h1>
+            <div class="hidden md:flex space-x-6">
+                <a href="#power" class="hover:text-secondary transition-colors">硬实力</a>
+                <a href="#philosophy" class="hover:text-secondary transition-colors">核心理念</a>
+                <a href="#origin" class="hover:text-secondary transition-colors">创业故事</a>
+                <a href="#contact" class="bg-secondary text-primary px-4 py-2 rounded-md font-semibold hover:bg-yellow-400 transition-colors">联系我们</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="bg-primary text-white pt-24 pb-32 text-center">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl md:text-6xl font-bold mb-4">我们只承诺一件事：</h2>
+            <h1 class="text-5xl md:text-7xl font-bold text-secondary mb-6">“绝不掉链子”</h1>
+            <p class="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
+                我们是扬华物流团队，华南区头部的冷链物流交付服务商。
+                <br>我们不依赖销售，只依靠口碑和实力说话。
+            </p>
+        </div>
+    </header>
+
+    <!-- Section 1: 硬实力 (数据看板) -->
+    <section id="power" class="py-20 bg-bg-alt">
+        <div class="container mx-auto px-6 max-w-7xl">
+            <h3 class="text-4xl font-bold text-primary text-center mb-4">我们的“硬实力”</h3>
+            <p class="text-center text-text-light text-lg mb-12 max-w-2xl mx-auto">我们用规模和投入，为您提供坚实的交付基础。这是我们“兜底”的底气。</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                <div class="bg-bg p-6 rounded-xl shadow-lg border-t-4 border-primary transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-6xl font-bold text-primary">300<span class="text-4xl">+</span></div>
+                    <div class="text-xl font-semibold text-text mt-2">自有车辆规模</div>
+                    <p class="text-text-light mt-1">强大的运力是履约的根本保障。</p>
+                </div>
+                <div class="bg-bg p-6 rounded-xl shadow-lg border-t-4 border-green-500 transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-6xl font-bold text-green-600">150<span class="text-4xl">+</span></div>
+                    <div class="text-xl font-semibold text-text mt-2">新能源货车</div>
+                    <p class="text-text-light mt-1">持续投入，为您降低成本，践行责任。</p>
+                </div>
+                <div class="bg-bg p-6 rounded-xl shadow-lg border-t-4 border-cyan-600 transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-6xl font-bold text-cyan-600">1万<span class="text-4xl">㎡</span></div>
+                    <div class="text-xl font-semibold text-text mt-2">餐饮行业仓储</div>
+                    <p class="text-text-light mt-1">专业的仓储管理，保障您的供应链安全。</p>
+                </div>
+                <div class="bg-bg p-6 rounded-xl shadow-lg border-t-4 border-yellow-500 transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-6xl font-bold text-yellow-600">Top 3</div>
+                    <div class="text-xl font-semibold text-text mt-2">广州冷链运力</div>
+                    <p class="text-text-light mt-1">我们在核心领域的专业地位。</p>
+                </div>
+            </div>
+
+            <div class="bg-bg p-8 rounded-lg shadow-lg">
+                <h4 class="text-2xl font-bold text-primary text-center mb-4">车队构成：面向未来的投入</h4>
+                <p class="text-center text-text-light mb-6">我们一半以上的运力已更新为新能源车辆，这不仅是成本控制，更是长期主义的承诺。</p>
+                <div class="chart-container">
+                    <canvas id="fleetChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: 核心理念 (交互核心) -->
+    <section id="philosophy" class="py-20 bg-bg">
+        <div class="container mx-auto px-6 max-w-7xl">
+            <h3 class="text-4xl font-bold text-primary text-center mb-4">我们的“软实力”：兜底的承诺</h3>
+            <p class="text-center text-text-light text-lg mb-12 max-w-2xl mx-auto">规模只是基础，理念才是我们的护城河。我们用三个故事，向您展示我们的与众不同。</p>
+
+            <div class="flex justify-center border-b-2 border-gray-200 mb-8">
+                <button class="tab-btn px-6 py-4 text-lg font-medium text-text-light active" onclick="showTab(event, 'tab-1')">
+                    🛡️ 对客户：春节不涨价
+                </button>
+                <button class="tab-btn px-6 py-4 text-lg font-medium text-text-light" onclick="showTab(event, 'tab-2')">
+                    🤝 对伙伴：亏了算我的
+                </button>
+                <button class="tab-btn px-6 py-4 text-lg font-medium text-text-light" onclick="showTab(event, 'tab-3')">
+                    🚀 对未来：逆势敢砸钱
+                </button>
+            </div>
+
+            <div id="tab-1" class="tab-content active animated-fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h4 class="text-3xl font-bold text-primary mb-4">承诺：春节亏损几十万，也坚决不涨价</h4>
+                        <p class="text-text-light mb-4">对沃尔玛这样的大客户，我们的承诺是全年服务不中断。每年春节，市场运力价格翻倍甚至更高，我们宁可自己承担几十万的亏损去高价外调车辆，也绝不向合作客户涨一分钱。</p>
+                        <p class="text-text font-semibold text-lg mb-2">这不是生意经，这是我们的底线。</p>
+                        <p class="text-text-light">下图模拟了春节期间的市场运费与我们给您的固定价格的对比。对我们来说，您的信任远比短期利润更重要。</p>
+                    </div>
+                    <div>
+                        <div class="chart-container">
+                            <canvas id="priceChart"></canvas>
+                        </div>
+                        <p class="text-center text-sm text-text-light mt-2">图示：春节期间市场运费(虚构) vs 我们的承诺价格</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-2" class="tab-content animated-fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h4 class="text-3xl font-bold text-primary mb-4">格局：成就“创业者”，亏了算我的</h4>
+                        <p class="text-text-light mb-4">物流行业最难管的是人。我们的解决方案是：不把司机当员工，而是当“创业者”伙伴。我们提供车辆、业务、保险和管理，他们只需要安心干活。我们向他们承诺：</p>
+                        <p class="text-primary font-bold text-2xl p-4 bg-gray-100 rounded-lg text-center">“你只管干，亏了算我的。”</p>
+                        <p class="text-text-light mt-4">这种“兜底”模式，让我们的团队极度稳定、高效，因为每个人都是在为自己干。这也是我们能向客户承诺“不掉链子”的组织基础。</p>
+                    </div>
+                    <div class="p-4">
+                        <h5 class="text-2xl font-bold text-primary text-center mb-6">我们的“创业者”兜底模式</h5>
+                        <div class="flex flex-col items-center">
+                            <div class="bg-primary text-white p-4 rounded-lg shadow-lg text-lg font-semibold w-full md:w-3/4 text-center">于总的公司 (提供平台、车辆、业务、风险兜底)</div>
+                            <div class="flow-arrow my-2"></div>
+                            <div class="bg-green-500 text-white p-4 rounded-lg shadow-lg text-lg font-semibold w-full md:w-3/4 text-center">“创业者”伙伴 (司机)</div>
+                            <div class="flow-arrow my-2"></div>
+                            <div class="bg-bg p-4 rounded-lg shadow-inner w-full md:w-3/4 text-center border-2 border-green-500">
+                                <p class="font-semibold text-green-700">产出：安心干活，高效交付，共享收益</g>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="tab-3" class="tab-content animated-fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h4 class="text-3xl font-bold text-primary mb-4">眼光：别人说要倒闭，我却在砸钱换车</h4>
+                        <p class="text-text-light mb-4">疫情后，很多同行都说物流干不下去了，都在收缩。但我们不这么看。我们坚信，越是困难时期，越要投资未来。物流的需求永远在，只是对成本和服务的要求更高了。</p>
+                        <p class="text-text-light mb-4">所以我们逆势而为，贷款也要砸钱，一口气购入150多台新能源车。为什么？</p>
+                        <ul class="list-disc list-inside text-text space-y-2">
+                            <li class="font-semibold">为了给客户提供更低的长期成本。</li>
+                            <li class="font-semibold">为了建立别人无法超越的规模效应。</li>
+                            <li class="font-semibold">因为我们坚信这个行业的未来。</li>
+                        </ul>
+                    </div>
+                    <div class="p-4">
+                        <img src="https://placehold.co/600x400/172a4f/ffc107?text=150%2B%E6%96%B0%E8%83%BD%E6%BA%90%E8%BD%A6%E9%98%9F" 
+                             alt="新能源车队" 
+                             class="rounded-lg shadow-2xl w-full h-auto"
+                             onerror="this.src='https://placehold.co/600x400/eeeeee/999999?text=Image+Load+Failed'">
+                        <p class="text-center text-sm text-text-light mt-2">我们的逆势投资：大规模新能源车队</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    
+    <!-- Section 3: 创业故事 (源动力) -->
+    <section id="origin" class="py-20 bg-bg-alt">
+        <div class="container mx-auto px-6 max-w-4xl text-center">
+            <h3 class="text-4xl font-bold text-primary mb-4">我们的源动力</h3>
+            <p class="text-center text-text-light text-lg mb-8 max-w-2xl mx-auto">我们为什么如此看重“承诺”？因为它来自于我们的第一桶金。</p>
+            <div class="bg-bg p-8 rounded-lg shadow-xl">
+                <span class="text-7xl text-primary opacity-20 font-bold absolute -mt-12 ml-4">“</span>
+                <h4 class="text-3xl font-bold text-primary mb-4 relative z-10">专啃别人干不了的硬骨头</h4>
+                <p class="text-text text-lg leading-relaxed relative z-10">
+                    我们的第一笔长期业务，是萨利亚在体育西商场的店。当时没人肯接，因为货在二楼，电梯不给用，每天100多件货全靠人扛。同行都说这不是人干的活。我去看完，说：我干。我就自己一个人，一箱一箱地往上搬，搬完腿都发软。但从那天起，这个业务就成了我们的，因为我们解决了客户最头疼的问题。
+                </p>
+                <p class="text-primary font-bold text-xl mt-6 relative z-10">—— 于长福</p>
+                <span class="text-7xl text-primary opacity-20 font-bold absolute right-12 -mb-12">”</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: 行动召唤 -->
+    <footer id="contact" class="py-20 bg-primary text-white text-center">
+        <div class="container mx-auto px-6">
+            <h3 class="text-4xl font-bold mb-6">您是否也在寻找“不掉链子”的伙伴？</h3>
+            <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                如果您需要的是一个能解决问题、信守承诺、并在关键时刻“兜得住底”的长期物流伙伴，我们期待与您聊聊。
+            </p>
+            <a href="mailto:contact@yuzonglogistics.com" 
+               class="inline-block bg-secondary text-primary px-10 py-4 rounded-lg text-lg font-bold hover:bg-yellow-400 transition-all transform hover:scale-105">
+                立即联系我们
+            </a>
+            <p class="text-sm text-gray-400 mt-8">我们没有销售团队，每一次沟通都由核心负责人亲自跟进。</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const tooltipTitleCallback = function(tooltipItems) {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                    return label.join(' ');
+                } else {
+                    return label;
+                }
+            };
+            
+            const defaultTooltipOptions = {
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: tooltipTitleCallback
+                        }
+                    }
+                }
+            };
+
+            const colors = {
+                primary: '#172a4f',
+                secondary: '#ffc107',
+                green: '#16a34a',
+                gray: '#e5e7eb'
+            };
+
+            // 1. 舰队构成图 (甜甜圈图)
+            if (document.getElementById('fleetChart')) {
+                const ctxFleet = document.getElementById('fleetChart').getContext('2d');
+                new Chart(ctxFleet, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['新能源货车 (150+)', '其他车辆 (150+)'],
+                        datasets: [{
+                            data: [150, 150],
+                            backgroundColor: [colors.green, colors.gray],
+                            borderColor: '#ffffff',
+                            borderWidth: 4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: { size: 14 }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    title: tooltipTitleCallback
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 2. 春节价格对比图 (折线图)
+            if (document.getElementById('priceChart')) {
+                const ctxPrice = document.getElementById('priceChart').getContext('2d');
+                new Chart(ctxPrice, {
+                    type: 'line',
+                    data: {
+                        labels: ['平时', '节前1周', '春节期间', '节后1周', '平时'],
+                        datasets: [
+                            {
+                                label: '市场运费 (波动)',
+                                data: [100, 150, 300, 180, 100],
+                                borderColor: colors.secondary,
+                                backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                                fill: true,
+                                tension: 0.1,
+                                borderWidth: 3,
+                                pointRadius: 5
+                            },
+                            {
+                                label: '我们的承诺价 (固定)',
+                                data: [100, 100, 100, 100, 100],
+                                borderColor: colors.primary,
+                                backgroundColor: 'rgba(23, 42, 79, 0.1)',
+                                fill: true,
+                                tension: 0.1,
+                                borderWidth: 3,
+                                pointRadius: 5,
+                                borderDash: [5, 5]
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: { size: 14 }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    title: tooltipTitleCallback
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        // Tab 切换逻辑
+        function showTab(event, tabID) {
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabID).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // 导航栏平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
